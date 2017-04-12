@@ -136,6 +136,12 @@ WEAK int halide_zynq_cma_free(struct buffer_t *buf) {
     return 0;
 }
 
+WEAK int halide_zynq_stencil(const struct buffer_t* buffer, struct cma_buffer_t* stencil) {
+    debug(0) << "halide_zynq_stencil\n";
+    *stencil = *((cma_buffer_t *)buffer->dev); // copy depth, stride, data, etc.
+    return 0;
+}
+
 WEAK int halide_zynq_subimage(const struct buffer_t* image, struct cma_buffer_t* subimage, void *address_of_subimage_origin, int width, int height) {
     debug(0) << "halide_zynq_subimage\n";
     *subimage = *((cma_buffer_t *)image->dev); // copy depth, stride, data, etc.

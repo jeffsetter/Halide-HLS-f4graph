@@ -41,3 +41,4 @@ clean:
 	rm -f pipeline_native.h pipeline_native.o
 	rm -f pipeline_hls.h pipeline_hls.cpp
 	rm -f hls_target.h hls_target.cpp
+	rm -f *.html

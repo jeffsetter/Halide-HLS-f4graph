@@ -18,8 +18,9 @@ Var xo("xo"), xi("xi"), yi("yi"), yo("yo");
 class MyPipeline {
 public:
     ImageParam input;
-    ImageParam weight;
+
     Param<uint16_t> bias;
+    ImageParam weight;
     Func kernel;
     Func clamped;
     Func conv1;
@@ -29,7 +30,7 @@ public:
 
     RDom win;
 
-    MyPipeline() : input(UInt(8), 3, "input"), weight(UInt(8), 2, "weight"), bias("bias"),
+  MyPipeline() : input(UInt(8), 3, "input"), bias("bias"), weight(UInt(8), 2, "weight"),
                    kernel("kernel"), conv1("conv1"),
                    output("output"), hw_output("hw_output"),
                    win(-2, 5, -2, 5) {

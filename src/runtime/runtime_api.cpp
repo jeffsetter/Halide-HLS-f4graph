@@ -179,6 +179,7 @@ extern "C" __attribute__((used)) void *halide_runtime_api_functions[] = {
     (void *)&halide_zynq_free,
     (void *)&halide_zynq_cma_alloc,
     (void *)&halide_zynq_cma_free,
+    (void *)&halide_zynq_stencil,
     (void *)&halide_zynq_subimage,
     (void *)&halide_zynq_hwacc_launch,
     (void *)&halide_zynq_hwacc_sync,

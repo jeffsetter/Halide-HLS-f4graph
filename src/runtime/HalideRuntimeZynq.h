@@ -52,6 +52,12 @@ extern int halide_zynq_cma_alloc(struct buffer_t *buf);
 extern int halide_zynq_cma_free(struct buffer_t *buf);
 // @}
 
+/** Create a new cma_buffer_t representing a stencil from a previous
+ * BUFFER. 
+ * No data copying occurs in the creation of the stencil.
+ */
+extern int halide_zynq_stencil(const buffer_t* buffer, struct cma_buffer_t* stencil);
+
 /** Create a new cma_buffer_t representing a sub-image tile of IMAGE
  * buffer. The sub-image tile starts at the user space address
  * ADDRESS_OF_SUBIMAGE_ORIGIN, and is WIDTH wide and HEIGHT tall.

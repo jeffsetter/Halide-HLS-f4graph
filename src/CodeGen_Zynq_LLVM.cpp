@@ -16,7 +16,7 @@ CodeGen_Zynq_LLVM::CodeGen_Zynq_LLVM(Target t)
     : CodeGen_ARM(t) { }
 
 void CodeGen_Zynq_LLVM::visit(const Realize *op) {
-    internal_assert(ends_with(op->name, ".stream"));
+  internal_assert(ends_with(op->name, ".stream") || ends_with(op->name, ".stencil"));
     llvm::StructType *kbuf_type = module->getTypeByName("struct.cma_buffer_t");
     internal_assert(kbuf_type);
     llvm::Constant *one = llvm::ConstantInt::get(i32_t, 1);
@@ -116,6 +116,21 @@ void CodeGen_Zynq_LLVM::visit(const Call *op) {
         vector<Value *> args({buffer_ptr, slice_ptr, address_of_subimage_origin, width, height});
         internal_assert(fn);
         value = builder->CreateCall(fn, args);
+    } else if (op->is_intrinsic("buffer_to_stencil")) {
+      /* IR:
+	 stream_subimage(buffer, stencil, ...)
+
+	 C code:
+	 halide_zynq_stencil(&buffer_var, &stencil_var);
+      */
+      internal_assert(op->args.size() >= 2);
+      Value *buffer_ptr = codegen(op->args[0]);
+      Value *stencil_ptr = codegen(op->args[1]);
+
+      llvm::Function *fn = module->getFunction("halide_zynq_stencil");
+      vector<Value *> args({buffer_ptr, stencil_ptr});
+      internal_assert(fn);
+      value = builder->CreateCall(fn, args);
     } else {
         CodeGen_ARM::visit(op);
     }

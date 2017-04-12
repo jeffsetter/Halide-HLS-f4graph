@@ -40,6 +40,7 @@ const string zynq_runtime =
     "void halide_zynq_free(void *user_context, void *ptr);\n"
     "int halide_zynq_cma_alloc(struct buffer_t *buf);\n"
     "int halide_zynq_cma_free(struct buffer_t *buf);\n"
+    "int halide_zynq_stencil(const struct buffer_t* buffer, struct cma_buffer_t* stencil, int width, int height);\n"
     "int halide_zynq_subimage(const struct buffer_t* image, struct cma_buffer_t* subimage, void *address_of_subimage_origin, int width, int height);\n"
     "int halide_zynq_hwacc_launch(struct cma_buffer_t bufs[]);\n"
     "int halide_zynq_hwacc_sync(int task_id);\n";
@@ -51,6 +52,7 @@ CodeGen_Zynq_C::CodeGen_Zynq_C(ostream &dest)
 }
 
 void CodeGen_Zynq_C::visit(const Realize *op) {
+  if (ends_with(op->name, ".stream")) {
     internal_assert(ends_with(op->name, ".stream"));
     open_scope();
     string slice_name = op->name;
@@ -61,6 +63,20 @@ void CodeGen_Zynq_C::visit(const Realize *op) {
     // Recurse
     print_stmt(op->body);
     close_scope(slice_name);
+  } else if (ends_with(op->name, ".stencil") || 
+	     ends_with(op->name, ".stencil_update")) {
+    open_scope();
+    string slice_name = op->name;
+    buffer_slices.push_back(slice_name);
+
+    do_indent();
+    stream << "cma_buffer_t " << print_name(slice_name) << ";\n";
+    // Recurse
+    print_stmt(op->body);
+    close_scope(slice_name);
+  } else {
+    CodeGen_C::visit(op);
+  }
 }
 
 void CodeGen_Zynq_C::visit(const ProducerConsumer *op) {
@@ -132,6 +148,14 @@ void CodeGen_Zynq_C::visit(const Call *op) {
         stream << "halide_zynq_subimage("
                << print_name(buffer_name) << ", &" << print_name(slice_name) << ", "
                << address_of_subimage_origin << ", " << width << ", " << height << ");\n";
+    } else if (op->is_intrinsic("buffer_to_stencil")) {
+        internal_assert(op->args.size() == 2);
+        // add a suffix to buffer var, in order to be compatible with CodeGen_C
+        string a0 = print_expr(op->args[0]);
+        string a1 = print_expr(op->args[1]);
+        do_indent();
+        stream << "buffer_to_stencil(" << a0 << ", " << a1 << ");\n";
+
     } else {
         CodeGen_C::visit(op);
     }
